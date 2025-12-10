@@ -3,4 +3,6 @@ python-dotenv
 aiohttp
 httpx
 Pillow
-
+sqlalchemy
+asyncpg
+psycopg2-binary

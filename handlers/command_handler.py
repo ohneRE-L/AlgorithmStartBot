@@ -1,9 +1,14 @@
 """
 Обработчики команд бота
 """
+import logging
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ContextTypes
 from config import AVAILABLE_ALGORITHMS
+from database.db_session import AsyncSessionLocal
+from database.repository import UserRepository
+
+logger = logging.getLogger(__name__)
 
 
 def get_main_keyboard():
@@ -36,6 +41,20 @@ def get_after_result_keyboard():
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /start"""
+    # Регистрируем или обновляем пользователя в БД
+    try:
+        async with AsyncSessionLocal() as session:
+            user = await UserRepository.get_or_create_user(
+                session=session,
+                telegram_id=update.effective_user.id,
+                username=update.effective_user.username,
+                full_name=update.effective_user.full_name
+            )
+            logger.info(f"User {user.telegram_id} ({user.username}) started the bot")
+    except Exception as e:
+        logger.error(f"Error registering user: {e}", exc_info=True)
+        # Продолжаем работу даже если не удалось зарегистрировать пользователя
+    
     welcome_message = (
         "👋 Добро пожаловать в бот для анализа аэрофотоснимков!\n\n"
         "Я помогу вам запустить анализ данных с БПЛА.\n\n"

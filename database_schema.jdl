@@ -1,0 +1,42 @@
+/**
+ * Сущность пользователя.
+ * Хранит информацию о пользователях Telegram бота.
+ */
+entity User {
+	telegramId Long
+	username String
+	role String
+	createdAt Instant
+}
+
+/**
+ * Сущность задачи.
+ * Хранит информацию о задачах анализа аэрофотоснимков.
+ */
+entity Task {
+	id UUID
+	userId Long
+	inputFilePath String required
+	status String
+	createdAt Instant
+}
+
+/**
+ * Сущность результата.
+ * Хранит результаты анализа с метаданными.
+ */
+entity Result {
+	id UUID
+	taskId UUID required
+	resultFilePath String required
+	metadata String
+	createdAt Instant
+}
+
+/**
+ * Связи один-ко-многим.
+ */
+relationship OneToMany {
+	User to Task{user}
+	Task to Result{task}
+}

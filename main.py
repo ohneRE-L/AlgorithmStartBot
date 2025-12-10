@@ -3,6 +3,8 @@
 """
 import asyncio
 import logging
+import sys
+import selectors
 from telegram import Update
 from telegram.error import TimedOut, NetworkError, TelegramError
 from telegram.ext import (
@@ -12,6 +14,10 @@ from telegram.ext import (
     filters,
     ContextTypes
 )
+
+# Устанавливаем SelectorEventLoop для Windows (требуется для psycopg)
+if sys.platform == 'winчё32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from config import BOT_TOKEN, AVAILABLE_ALGORITHMS, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE
 from handlers.command_handler import (
     start_command,
@@ -22,6 +28,7 @@ from handlers.command_handler import (
 )
 from handlers.algorithm_handler import handle_algorithm_selection
 from handlers.file_handler import handle_file
+from database.db_session import init_db, close_db, AsyncSessionLocal
 
 # Настройка логирования
 logging.basicConfig(
@@ -197,6 +204,34 @@ def main():
     
     # Регистрируем обработчик ошибок
     application.add_error_handler(error_handler)
+    
+    # Инициализируем базу данных при запуске
+    async def post_init(app: Application) -> None:
+        """Инициализация после создания приложения"""
+        try:
+            # Небольшая задержка для стабильности подключения
+            import asyncio
+            await asyncio.sleep(0.5)
+            await init_db()
+            logger.info("✅ База данных инициализирована")
+        except Exception as e:
+            logger.error(f"❌ Ошибка инициализации БД: {e}", exc_info=True)
+            logger.warning("Бот продолжит работу без БД")
+            logger.info("Проверьте параметры подключения в token.env и убедитесь, что PostgreSQL запущен")
+    
+    # Регистрируем функцию инициализации
+    application.post_init = post_init
+    
+    # Функция для закрытия БД при завершении
+    async def post_shutdown(app: Application) -> None:
+        """Закрытие соединений при завершении"""
+        try:
+            await close_db()
+            logger.info("Соединение с БД закрыто")
+        except Exception as e:
+            logger.error(f"Ошибка при закрытии БД: {e}")
+    
+    application.post_shutdown = post_shutdown
     
     # Запускаем бота
     logger.info("Бот запущен...")

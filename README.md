@@ -30,7 +30,19 @@ cp .env.example .env
 BOT_TOKEN=ваш_токен_бота
 ```
 
-5. (Опционально) Для загрузки файлов до 2000 МБ настройте локальный сервер Bot API:
+5. **Настройте базу данных:**
+   - Установите PostgreSQL 15+ локально (см. [README_DB.md](README_DB.md))
+   - Создайте базу данных и выполните SQL скрипт `database/init.sql`
+   - Добавьте параметры БД в `token.env`:
+   ```
+   DB_USER=postgres
+   DB_PASS=ваш_пароль_postgres
+   DB_NAME=agro_bot_db
+   DB_HOST=localhost
+   DB_PORT=5432
+   ```
+
+6. (Опционально) Для загрузки файлов до 2000 МБ настройте локальный сервер Bot API:
    - **Для VPS (Linux):** См. подробную инструкцию в файле [LOCAL_BOT_API_SETUP.md](LOCAL_BOT_API_SETUP.md)
    - **Для Windows:** См. [документацию Telegram](https://core.telegram.org/bots/api#using-a-local-bot-api-server)
    - После установки добавьте в `token.env` или `.env`:
@@ -45,6 +57,8 @@ BOT_TOKEN=ваш_токен_бота
 python main.py
 ```
 
+Бот автоматически создаст таблицы в БД при первом запуске.
+
 ## Структура проекта
 
 ```
@@ -52,6 +66,13 @@ AlgorithmStartBot/
 ├── main.py                 # Главный файл бота
 ├── config.py              # Конфигурация и настройки
 ├── server_client.py       # Клиент для взаимодействия с сервером алгоритмов
+├── database/              # База данных
+│   ├── __init__.py
+│   ├── base.py            # Базовый класс моделей
+│   ├── models.py          # Модели SQLAlchemy (User, Task)
+│   ├── db_session.py      # Настройка подключения к БД
+│   ├── repository.py       # Репозиторий для работы с БД
+│   └── init.sql           # SQL скрипт создания таблиц
 ├── handlers/              # Обработчики команд и сообщений
 │   ├── __init__.py
 │   ├── command_handler.py    # Обработка команд (/start, /help, /cancel)
@@ -61,7 +82,8 @@ AlgorithmStartBot/
 │   └── file_validator.py     # Проверка корректности файлов
 ├── requirements.txt       # Зависимости Python
 ├── .env.example          # Пример файла с переменными окружения
-└── README.md             # Документация
+├── README.md             # Документация
+└── README_DB.md          # Документация по БД
 ```
 
 ## Использование
@@ -86,6 +108,10 @@ AlgorithmStartBot/
 - ✅ Валидация загружаемых файлов
 - ✅ Обработка ошибок на всех этапах
 - ✅ Поддержка локального сервера Bot API (до 2000 МБ файлов)
+- ✅ База данных PostgreSQL для хранения пользователей и задач
+- ✅ Сохранение изображений в БД (файлы до 10 МБ)
+- ✅ Автоматическая регистрация пользователей
+- ✅ Отслеживание статусов задач
 - ⚠️ Взаимодействие с сервером алгоритмов - заглушка (симуляция)
 - ⚠️ Результаты анализа - тестовые файлы
 
@@ -107,9 +133,14 @@ AlgorithmStartBot/
 ## Требования
 
 - Python 3.8+
-- python-telegram-bot
-- aiohttp
-- Pillow
+- PostgreSQL 15+ (локальная установка)
+- Зависимости Python (см. `requirements.txt`):
+  - python-telegram-bot
+  - aiohttp
+  - sqlalchemy
+  - asyncpg
+  - psycopg2-binary
+  - Pillow
 
 ## Лицензия
 
