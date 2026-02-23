@@ -1,23 +1,23 @@
 """
 Обработчики выбора алгоритма
 """
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ContextTypes
 from config import AVAILABLE_ALGORITHMS, TELEGRAM_MAX_FILE_SIZE, USE_LOCAL_BOT_API
 from handlers.command_handler import show_algorithms, get_main_keyboard
 
 
 def get_file_upload_keyboard():
-    """Возвращает клавиатуру при ожидании загрузки файла"""
+    """Клавиатура при ожидании загрузки файла"""
     keyboard = [
-        [KeyboardButton("🔙 Выбрать другой алгоритм")],
-        [KeyboardButton("❌ Отмена")]
+        [KeyboardButton("📁 Отправить другой снимок")],
+        [KeyboardButton("🏠 Главное меню")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
 async def handle_algorithm_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обрабатывает выбор алгоритма пользователем"""
+    """Устанавливает выбранный (единственный) алгоритм и просит прислать файл"""
     user_text = update.message.text
     
     # Обработка кнопки "Назад"

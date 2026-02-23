@@ -6,12 +6,11 @@ from telegram.error import TelegramError, TimedOut, NetworkError
 from telegram.ext import ContextTypes
 from utils.file_validator import validate_file
 from server_client import AlgorithmServerClient
-from config import TELEGRAM_MAX_FILE_SIZE, USE_LOCAL_BOT_API
+from config import TELEGRAM_MAX_FILE_SIZE, USE_LOCAL_BOT_API, AVAILABLE_ALGORITHMS
 from handlers.command_handler import (
     get_error_keyboard,
     get_main_keyboard,
     get_after_result_keyboard,
-    show_algorithms
 )
 from database.db_session import AsyncSessionLocal
 # Импортируем обновленные репозитории
@@ -22,29 +21,19 @@ logger = logging.getLogger(__name__)
 
 async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text if update.message.text else ""
-    if user_text == "🔙 Выбрать другой алгоритм" or user_text == "📋 Выбрать другой алгоритм":
-        context.user_data['state'] = 'waiting_algorithm'
-        await show_algorithms(update, context)
-        return
 
-    if user_text == "❌ Отмена":
+    if user_text == "🏠 Главное меню":
         context.user_data.clear()
         await update.message.reply_text(
-            "❌ Операция отменена.",
+            "🏠 Главное меню",
             reply_markup=get_main_keyboard()
         )
         return
 
     if context.user_data.get('state') != 'waiting_file':
+        # Если состояние не определено, просим начать заново с главной клавиатурой
         await update.message.reply_text(
-            "❌ Сначала выберите алгоритм, используя кнопку 'Выбрать алгоритм'",
-            reply_markup=get_main_keyboard()
-        )
-        return
-
-    if 'selected_algorithm' not in context.user_data:
-        await update.message.reply_text(
-            "❌ Алгоритм не выбран. Используйте кнопку 'Выбрать алгоритм' для начала работы.",
+            "Для анализа сначала нажмите «📁 Отправить снимок» или используйте /start.",
             reply_markup=get_main_keyboard()
         )
         return
@@ -83,6 +72,16 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
     try:
+        # Если алгоритм не задан (у нас он один), подставляем автоматически
+        if 'selected_algorithm' not in context.user_data:
+            try:
+                context.user_data['selected_algorithm'] = next(iter(AVAILABLE_ALGORITHMS.values()))
+            except StopIteration:
+                context.user_data['selected_algorithm'] = {
+                    "id": "agriculture_classification",
+                    "name": "OEM-Lightweight",
+                }
+
         try:
             file_obj = await context.bot.get_file(file.file_id)
         except TelegramError as e:
@@ -138,7 +137,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Работа с БД
         db_request = None
         user_id = update.effective_user.id
-        algo_name = context.user_data['selected_algorithm']['name']
+        algo_name = context.user_data['selected_algorithm'].get('name', "OEM-Lightweight")
 
         try:
             async with AsyncSessionLocal() as session:
@@ -167,7 +166,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Работа с сервером алгоритмов
         client = AlgorithmServerClient()
-        algorithm_id = context.user_data['selected_algorithm']['id']
+        algorithm_id = context.user_data['selected_algorithm'].get('id', "agriculture_classification")
         success, server_task_id, error = await client.start_analysis(
             algorithm_id,
             download_path,

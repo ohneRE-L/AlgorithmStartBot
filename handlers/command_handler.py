@@ -12,26 +12,26 @@ logger = logging.getLogger(__name__)
 
 
 def get_main_keyboard():
-    """Возвращает главную клавиатуру"""
+    """Главная клавиатура: сразу просим прислать снимок или открыть справку"""
     keyboard = [
-        [KeyboardButton("📋 Выбрать алгоритм")],
-        [KeyboardButton("❓ Помощь"), KeyboardButton("❌ Отмена")]
+        [KeyboardButton("📁 Отправить снимок")],
+        [KeyboardButton("❓ Помощь")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
 def get_error_keyboard():
-    """Возвращает клавиатуру при ошибке"""
+    """Клавиатура при ошибке"""
     keyboard = [
         [KeyboardButton("🔄 Попробовать снова")],
-        [KeyboardButton("📋 Выбрать другой алгоритм")],
+        [KeyboardButton("📁 Отправить другой снимок")],
         [KeyboardButton("🏠 Главное меню")]
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
 def get_after_result_keyboard():
-    """Возвращает клавиатуру после получения результата"""
+    """Клавиатура после получения результата"""
     keyboard = [
         [KeyboardButton("🔄 Новый анализ")],
         [KeyboardButton("🏠 Главное меню")]
@@ -57,8 +57,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     welcome_message = (
         "👋 Добро пожаловать в бот для анализа аэрофотоснимков!\n\n"
-        "Я помогу вам запустить анализ данных с БПЛА.\n\n"
-        "Для начала работы выберите алгоритм из списка."
+        "Я запущу сегментацию земель по вашему снимку с помощью модели OEM-Lightweight.\n\n"
+        "Нажмите «📁 Отправить снимок» и приложите файл (или просто пришлите снимок как документ/фото)."
     )
     
     await update.message.reply_text(
@@ -69,16 +69,20 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Сбрасываем состояние пользователя
     context.user_data.clear()
 
+    # Единственный алгоритм выбираем автоматически
+    try:
+        context.user_data['selected_algorithm'] = next(iter(AVAILABLE_ALGORITHMS.values()))
+    except StopIteration:
+        pass
+
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /help"""
     help_text = (
         "📖 Справка по использованию бота:\n\n"
-        "1. Используйте кнопку 'Выбрать алгоритм' для начала работы\n"
-        "2. Выберите нужный алгоритм из списка\n"
-        "3. Загрузите файл с данными (поддерживаются форматы: .tif, .tiff, .geotiff, .jpg, .jpeg, .png)\n"
-        "4. Дождитесь завершения анализа\n"
-        "5. Получите результат в чате\n\n"
+        "1. Нажмите кнопку «📁 Отправить снимок» или просто пришлите файл со снимком.\n"
+        "2. Бот проверит файл и запустит алгоритм OEM-Lightweight для сегментации земель.\n"
+        "3. Дождитесь завершения анализа и получите результат в виде изображения.\n\n"
         "Команды:\n"
         "/start - начать работу\n"
         "/help - показать эту справку\n"
@@ -99,12 +103,12 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def show_algorithms(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показывает список доступных алгоритмов"""
-    message = "📋 Выберите алгоритм для анализа:\n\n"
+    message = "📋 Доступен алгоритм анализа на основе OEM-Lightweight:\n\n"
     
     keyboard = []
     for key, algo in AVAILABLE_ALGORITHMS.items():
         message += f"{key}. {algo['name']}\n   {algo['description']}\n\n"
-        keyboard.append([KeyboardButton(f"{key}. {algo['name']}")])
+        keyboard.append([KeyboardButton(algo['name'])])
     
     # Добавляем кнопку "Назад"
     keyboard.append([KeyboardButton("🔙 Назад")])

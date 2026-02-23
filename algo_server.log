@@ -1,0 +1,25 @@
+INFO:     Started server process [25072]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:52220 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:55170 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_2420a9fc-0306-4926-97e7-8278e26f1c8b...
+[ WARN:0@14.150] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33550 (0x830e) encountered
+[ WARN:0@14.150] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33922 (0x8482) encountered
+[ WARN:0@14.151] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34735 (0x87af) encountered
+[ WARN:0@14.151] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34736 (0x87b0) encountered
+[ WARN:0@14.151] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34737 (0x87b1) encountered
+Задача res_2420a9fc-0306-4926-97e7-8278e26f1c8b готова! Результат: server_results/res_2420a9fc-0306-4926-97e7-8278e26f1c8b_result.png
+INFO:     ::1:55174 - "GET /api/task/res_2420a9fc-0306-4926-97e7-8278e26f1c8b/status HTTP/1.1" 200 OK
+INFO:     ::1:55174 - "GET /api/task/res_2420a9fc-0306-4926-97e7-8278e26f1c8b/result HTTP/1.1" 200 OK
+INFO:     Started server process [4192]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:55754 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:55809 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_d6a276b2-72a2-4768-ace4-54ac7e788037...
+Задача res_d6a276b2-72a2-4768-ace4-54ac7e788037 готова! Результат: server_results/res_d6a276b2-72a2-4768-ace4-54ac7e788037_result.png
+INFO:     ::1:57039 - "GET /api/task/res_d6a276b2-72a2-4768-ace4-54ac7e788037/status HTTP/1.1" 200 OK
+INFO:     ::1:57039 - "GET /api/task/res_d6a276b2-72a2-4768-ace4-54ac7e788037/result HTTP/1.1" 200 OK

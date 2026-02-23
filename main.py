@@ -5,6 +5,8 @@ import asyncio
 import logging
 import sys
 import selectors
+import subprocess
+from pathlib import Path
 from telegram import Update
 from telegram.error import TimedOut, NetworkError, TelegramError
 from telegram.ext import (
@@ -18,7 +20,7 @@ from telegram.ext import (
 # Устанавливаем SelectorEventLoop для Windows (требуется для psycopg)
 if sys.platform == 'winчё32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from config import BOT_TOKEN, AVAILABLE_ALGORITHMS, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE
+from config import BOT_TOKEN, AVAILABLE_ALGORITHMS, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE, ALGORITHM_SERVER_URL
 from handlers.command_handler import (
     start_command,
     help_command,
@@ -37,6 +39,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+_algo_server_process: subprocess.Popen | None = None
+_algo_server_pid_file = Path(__file__).with_name("algo_server.pid")
+
 
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обрабатывает текстовые сообщения"""
@@ -44,10 +49,16 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_state = context.user_data.get('state')
     
     # Обработка главных кнопок
-    if user_text == "📋 Выбрать алгоритм" or user_text.lower() in ['выбрать алгоритм', 'алгоритм']:
-        await show_algorithms(update, context)
+    if user_text == "📁 Отправить снимок":
+        # Сразу просим прислать файл для анализа
+        context.user_data['state'] = 'waiting_file'
+        from handlers.algorithm_handler import get_file_upload_keyboard
+        await update.message.reply_text(
+            "📁 Пришлите снимок (как документ или фото) для анализа.",
+            reply_markup=get_file_upload_keyboard()
+        )
         return
-    
+
     if user_text == "❓ Помощь" or user_text.lower() in ['помощь', 'help']:
         await help_command(update, context)
         return
@@ -64,33 +75,27 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
     
-    if user_text == "🔄 Новый анализ" or user_text.lower() in ['новый анализ', 'new']:
+    if user_text == "🔄 Новый анализ" or user_text == "📁 Отправить другой снимок":
         context.user_data.clear()
-        await show_algorithms(update, context)
+        from handlers.algorithm_handler import get_file_upload_keyboard
+        context.user_data['state'] = 'waiting_file'
+        await update.message.reply_text(
+            "📁 Пришлите следующий снимок для анализа.",
+            reply_markup=get_file_upload_keyboard()
+        )
         return
     
     # Обработка кнопок при ошибках
     if user_text == "🔄 Попробовать снова" or user_text.lower() in ['попробовать снова', 'retry']:
-        if 'selected_algorithm' in context.user_data:
-            context.user_data['state'] = 'waiting_file'
-            from handlers.algorithm_handler import get_file_upload_keyboard
-            await update.message.reply_text(
-                "📁 Загрузите файл с данными для анализа.",
-                reply_markup=get_file_upload_keyboard()
-            )
-        else:
-            await show_algorithms(update, context)
+        context.user_data['state'] = 'waiting_file'
+        from handlers.algorithm_handler import get_file_upload_keyboard
+        await update.message.reply_text(
+            "📁 Пришлите снимок для анализа ещё раз.",
+            reply_markup=get_file_upload_keyboard()
+        )
         return
     
-    if user_text == "📋 Выбрать другой алгоритм":
-        context.user_data.pop('selected_algorithm', None)
-        await show_algorithms(update, context)
-        return
-    
-    # Обработка выбора алгоритма
-    if user_state == 'waiting_algorithm':
-        await handle_algorithm_selection(update, context)
-        return
+    # Больше не поддерживаем выбор алгоритма, он один
     
     # Обработка кнопок при ожидании файла (обрабатывается в file_handler)
     if user_state == 'waiting_file':
@@ -134,7 +139,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 def check_local_server_sync(url: str) -> bool:
-    """Проверяет доступность локального сервера Bot API (синхронно)"""
+    """Проверяет доступность локального HTTP-сервера (синхронно)"""
     try:
         import urllib.request
         import urllib.error
@@ -142,11 +147,87 @@ def check_local_server_sync(url: str) -> bool:
         with urllib.request.urlopen(req, timeout=3) as response:
             # Даже если вернется 404, это значит сервер работает
             return True
+    except urllib.error.HTTPError:
+        # 404/401/etc — это тоже ответ сервера, значит он запущен
+        return True
     except urllib.error.URLError:
         return False
     except Exception as e:
         logger.debug(f"Ошибка при проверке локального сервера: {e}")
         return False
+
+
+def ensure_algorithm_server():
+    """
+    Проверяет доступность сервера алгоритмов и при необходимости
+    пытается запустить его локально через uvicorn.
+    """
+    url = (ALGORITHM_SERVER_URL or "").rstrip("/")
+    if not url:
+        logger.warning("ALGORITHM_SERVER_URL не задан, сервер алгоритмов не будет запускаться автоматически")
+        return
+
+    # Если у нас остался PID от предыдущего автозапуска — гасим тот сервер, чтобы не было "старых" версий
+    try:
+        if _algo_server_pid_file.exists():
+            pid_str = _algo_server_pid_file.read_text(encoding="utf-8").strip()
+            if pid_str.isdigit():
+                pid = int(pid_str)
+                subprocess.run(
+                    ["taskkill", "/PID", str(pid), "/T", "/F"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+            _algo_server_pid_file.unlink(missing_ok=True)
+    except Exception:
+        # Не критично: просто не смогли прибраться
+        pass
+
+    # Если сервер уже отвечает - ничего не делаем
+    if check_local_server_sync(url):
+        logger.info(f"Сервер алгоритмов доступен по адресу {url}")
+        return
+
+    # Пытаемся распарсить host/port из URL
+    host = "127.0.0.1"
+    port = 8000
+    try:
+        without_scheme = url.split("://", 1)[-1]
+        host_port = without_scheme.split("/", 1)[0]
+        if ":" in host_port:
+            host, port_str = host_port.split(":", 1)
+            port = int(port_str)
+        else:
+            host = host_port
+    except Exception:
+        logger.warning(f"Не удалось корректно распарсить URL сервера алгоритмов: {url}, использую {host}:{port}")
+
+    logger.info(f"Пробую запустить локальный сервер алгоритмов: host={host}, port={port}...")
+    try:
+        global _algo_server_process
+        log_path = Path(__file__).with_name("algo_server.log")
+        log_f = open(log_path, "a", encoding="utf-8")
+        _algo_server_process = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "algo_server:app", "--host", host, "--port", str(port)],
+            cwd=str(Path(__file__).parent),
+            stdout=log_f,
+            stderr=log_f,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        try:
+            _algo_server_pid_file.write_text(str(_algo_server_process.pid), encoding="utf-8")
+        except Exception:
+            pass
+        # Даём серверу немного времени подняться
+        import time
+        time.sleep(2)
+        if check_local_server_sync(url):
+            logger.info("✅ Локальный сервер алгоритмов успешно запущен")
+        else:
+            logger.warning("⚠️ Не удалось подтвердить работу сервера алгоритмов после автозапуска")
+    except Exception as e:
+        logger.error(f"❌ Ошибка при автозапуске сервера алгоритмов: {e}", exc_info=True)
 
 
 def main():
@@ -172,6 +253,9 @@ def main():
                 "Или уберите LOCAL_BOT_API_URL из token.env для использования официального API"
             )
             return
+
+    # Проверяем/запускаем сервер алгоритмов
+    ensure_algorithm_server()
     
     # Создаем приложение
     builder = Application.builder().token(BOT_TOKEN)
@@ -230,6 +314,23 @@ def main():
             logger.info("Соединение с БД закрыто")
         except Exception as e:
             logger.error(f"Ошибка при закрытии БД: {e}")
+
+        # Гасим сервер алгоритмов, если он был поднят этим ботом
+        global _algo_server_process
+        if _algo_server_process is not None:
+            try:
+                _algo_server_process.terminate()
+                _algo_server_process.wait(timeout=5)
+            except Exception:
+                try:
+                    _algo_server_process.kill()
+                except Exception:
+                    pass
+            _algo_server_process = None
+            try:
+                _algo_server_pid_file.unlink(missing_ok=True)
+            except Exception:
+                pass
     
     application.post_shutdown = post_shutdown
     
