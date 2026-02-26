@@ -97,3 +97,4 @@ celerybeat-schedule
 .spyderproject
 .spyproject
 .ropeproject
+server_uploads/

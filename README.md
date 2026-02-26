@@ -43,7 +43,6 @@ BOT_TOKEN=ваш_токен_бота
    ```
 
 6. (Опционально) Для загрузки файлов до 2000 МБ настройте локальный сервер Bot API:
-   - **Для VPS (Linux):** См. подробную инструкцию в файле [LOCAL_BOT_API_SETUP.md](LOCAL_BOT_API_SETUP.md)
    - **Для Windows:** См. [документацию Telegram](https://core.telegram.org/bots/api#using-a-local-bot-api-server)
    - После установки добавьте в `token.env` или `.env`:
    ```
