@@ -69,6 +69,20 @@ class AlgorithmServerClient:
         except Exception as e:
             return False, None, str(e)
 
+    async def get_stats(self, task_id: str):
+        """Получает статистику по классам для задачи."""
+        try:
+            session = await self._get_session()
+            async with session.get(f"{self.base_url}/api/task/{task_id}/stats") as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if "stats" in data:
+                        return True, data["stats"], None
+                    return False, None, data.get("error", "Нет статистики")
+                return False, None, f"Статус {response.status}"
+        except Exception as e:
+            return False, None, str(e)
+
     async def close(self):
         if self.session and not self.session.closed:
             await self.session.close()

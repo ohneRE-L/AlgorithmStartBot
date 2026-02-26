@@ -2,11 +2,18 @@ import os
 import asyncio
 import logging
 from telegram import Update
-from telegram.error import TelegramError, TimedOut, NetworkError
+from telegram.error import TelegramError, TimedOut, NetworkError, BadRequest
 from telegram.ext import ContextTypes
 from utils.file_validator import validate_file
 from server_client import AlgorithmServerClient
-from config import TELEGRAM_MAX_FILE_SIZE, USE_LOCAL_BOT_API, AVAILABLE_ALGORITHMS
+from config import (
+    TELEGRAM_MAX_FILE_SIZE,
+    USE_LOCAL_BOT_API,
+    AVAILABLE_ALGORITHMS,
+    FILE_DOWNLOAD_READ_TIMEOUT,
+    FILE_DOWNLOAD_WRITE_TIMEOUT,
+    FILE_DOWNLOAD_CONNECT_TIMEOUT,
+)
 from handlers.command_handler import (
     get_error_keyboard,
     get_main_keyboard,
@@ -17,6 +24,22 @@ from database.db_session import AsyncSessionLocal
 from database.repository import UserRepository, RequestRepository, ResultRepository
 
 logger = logging.getLogger(__name__)
+
+
+async def _safe_edit_or_reply(processing_msg, update: Update, text: str, reply_markup=None):
+    """Обновляет сообщение или отправляет новое, если edit вернул 400 (например, тот же текст)."""
+    if not processing_msg:
+        await update.message.reply_text(text, reply_markup=reply_markup)
+        return
+    try:
+        if reply_markup is not None:
+            await processing_msg.edit_text(text, reply_markup=reply_markup)
+        else:
+            await processing_msg.edit_text(text)
+    except BadRequest:
+        await update.message.reply_text(text, reply_markup=reply_markup)
+    except TelegramError:
+        await update.message.reply_text(text, reply_markup=reply_markup)
 
 
 async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -82,19 +105,18 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "name": "OEM-Lightweight",
                 }
 
+        download_kw = dict(
+            read_timeout=FILE_DOWNLOAD_READ_TIMEOUT,
+            write_timeout=FILE_DOWNLOAD_WRITE_TIMEOUT,
+            connect_timeout=FILE_DOWNLOAD_CONNECT_TIMEOUT,
+        )
         try:
-            file_obj = await context.bot.get_file(file.file_id)
+            file_obj = await context.bot.get_file(file.file_id, **download_kw)
         except TelegramError as e:
             error_msg = str(e)
             logger.error(f"Error getting file: {error_msg}")
             error_text = f"❌ Ошибка при получении файла:\n{error_msg}\nПопробуйте загрузить файл снова."
-            if processing_msg:
-                try:
-                    await processing_msg.edit_text(error_text, reply_markup=get_error_keyboard())
-                except:
-                    pass
-            else:
-                await update.message.reply_text(error_text, reply_markup=get_error_keyboard())
+            await _safe_edit_or_reply(processing_msg, update, error_text, reply_markup=get_error_keyboard())
             context.user_data['state'] = 'waiting_file'
             return
 
@@ -106,8 +128,24 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         download_path = f"downloads/{update.effective_user.id}_{file_name}"
         os.makedirs('downloads', exist_ok=True)
 
+        # Для больших файлов показываем, что идёт скачивание (может занять минуты)
+        await _safe_edit_or_reply(
+            processing_msg, update,
+            "⏳ Скачиваю файл... (для файлов 100+ МБ это может занять несколько минут)"
+        )
+
         logger.info(f"Starting file download: {file_name}, size: {file_size} bytes")
-        await file_obj.download_to_drive(download_path)
+        try:
+            await file_obj.download_to_drive(download_path, **download_kw)
+        except (TimedOut, NetworkError, TelegramError) as e:
+            logger.error(f"Download failed: {e}")
+            await _safe_edit_or_reply(
+                processing_msg, update,
+                f"❌ Ошибка при скачивании файла:\n{e}\n\nПопробуйте отправить файл снова.",
+                reply_markup=get_error_keyboard()
+            )
+            context.user_data['state'] = 'waiting_file'
+            return
 
         # Получаем реальный размер файла после скачивания
         real_file_size = os.path.getsize(download_path)
@@ -115,11 +153,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if not is_valid:
             error_text = f"❌ Ошибка проверки файла:\n{error_message}\n\nВыберите действие:"
-            if processing_msg:
-                try:
-                    await processing_msg.edit_text(error_text, reply_markup=get_error_keyboard())
-                except:
-                    pass
+            await _safe_edit_or_reply(processing_msg, update, error_text, reply_markup=get_error_keyboard())
             try:
                 os.remove(download_path)
             except:
@@ -128,11 +162,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         status_text = "✅ Файл проверен и готов к обработке.\n🚀 Запускаю анализ на сервере..."
-        if processing_msg:
-            try:
-                await processing_msg.edit_text(status_text)
-            except:
-                pass
+        await _safe_edit_or_reply(processing_msg, update, status_text)
 
         # Работа с БД
         db_request = None
@@ -224,11 +254,11 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logger.error(f"Unexpected error in handle_file: {e}", exc_info=True)
-        if processing_msg:
-            try:
-                await processing_msg.edit_text("❌ Произошла непредвиденная ошибка.", reply_markup=get_error_keyboard())
-            except:
-                pass
+        await _safe_edit_or_reply(
+            processing_msg, update,
+            "❌ Произошла непредвиденная ошибка.",
+            reply_markup=get_error_keyboard()
+        )
         context.user_data['state'] = 'error'
 
 
@@ -290,6 +320,17 @@ async def monitor_task_status(
                 success, result_path, error = await client.get_result(server_task_id)
 
                 if success:
+                    # Пытаемся получить статистику по классам
+                    stats_success, stats, stats_err = await client.get_stats(server_task_id)
+                    summary_lines = []
+                    if stats_success and stats:
+                        for item in stats:
+                            name = item.get("name", "unknown")
+                            p = item.get("percent", 0.0)
+                            summary_lines.append(f"- {name}: {p:.1f}%")
+                    elif stats_err:
+                        logger.warning(f"Не удалось получить статистику по классам: {stats_err}")
+
                     # 1. Сохраняем результат в БД
                     if db_request_id:
                         try:
@@ -312,9 +353,18 @@ async def monitor_task_status(
                     # 2. Отправляем файл пользователю
                     try:
                         with open(result_path, 'rb') as result_file:
+                            caption_lines = [
+                                "📊 Результат анализа",
+                                f"Алгоритм: {context.user_data.get('selected_algorithm', {}).get('name', 'N/A')}",
+                            ]
+                            if summary_lines:
+                                caption_lines.append("Классы:")
+                                caption_lines.extend(summary_lines)
+                            caption = "\n".join(caption_lines)
+
                             await update.message.reply_document(
                                 document=result_file,
-                                caption=f"📊 Результат анализа\nАлгоритм: {context.user_data.get('selected_algorithm', {}).get('name', 'N/A')}"
+                                caption=caption
                             )
                         await update.message.reply_text("✅ Результат успешно отправлен!",
                                                         reply_markup=get_after_result_keyboard())

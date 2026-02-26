@@ -35,11 +35,17 @@ def validate_file(file_path: str, file_size: int) -> Tuple[bool, Optional[str]]:
         # Для изображений можно проверить через Pillow
         if file_ext in ['.jpg', '.jpeg', '.png', '.tif', '.tiff']:
             from PIL import Image
+            # Для аэрофото/ортоснимков лимит пикселей Pillow по умолчанию (~179 Мп) мал — временно повышаем
+            old_max = getattr(Image, 'MAX_IMAGE_PIXELS', None)
             try:
+                Image.MAX_IMAGE_PIXELS = 2_000_000_000  # 2 Гпкс, достаточно для больших орто
                 img = Image.open(file_path)
                 img.verify()
             except Exception as e:
                 return False, f"Файл поврежден или имеет некорректный формат: {str(e)}"
+            finally:
+                if old_max is not None:
+                    Image.MAX_IMAGE_PIXELS = old_max
     except ImportError:
         # Если Pillow не установлен, пропускаем проверку
         pass

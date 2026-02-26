@@ -6,7 +6,10 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
+env.bak/
+venv.bak/
 build/
 develop-eggs/
 dist/
@@ -22,23 +25,75 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Environment variables
 .env
 token.env
 
-# Downloads and results
-downloads/
+#results
 results/
 
-# IDE
+# IDE / OS
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
 
+# ——— oem-lightweight ———
+oem-lightweight/demo_data/images/
+# Model / data files
+*.pth
+*.tar
+*.pt
+*.npy
+oem-lightweight/search-*/
+oem-lightweight/eval-*/
+oem-lightweight/experiments
+oem-lightweight/node_modules/
+oem-lightweight/models/FasterSeg/*
+!oem-lightweight/models/FasterSeg/.gitkeep
+oem-lightweight/models/SparseMask/*
+!oem-lightweight/models/SparseMask/.gitkeep
+oem-lightweight/mkdocs/docs/temp
+oem-lightweight/site
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Test / coverage
+.pytest_cache
+.tox/
+.coverage
+.coverage.*
+.cache
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+nosetests.xml
+.mypy_cache/
+
+# Misc
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+.static_storage/
+.webassets-cache
+local_settings.py
+db.sqlite3
+instance/
+.scrapy
+docs/_build/
+target/
+.ipynb_checkpoints
+.python-version
+celerybeat-schedule
+*.sage.py
+.spyderproject
+.spyproject
+.ropeproject

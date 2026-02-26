@@ -18,7 +18,7 @@ from telegram.ext import (
 )
 
 # Устанавливаем SelectorEventLoop для Windows (требуется для psycopg)
-if sys.platform == 'winчё32':
+if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 from config import BOT_TOKEN, AVAILABLE_ALGORITHMS, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE, ALGORITHM_SERVER_URL
 from handlers.command_handler import (
@@ -244,13 +244,9 @@ def main():
         if not is_available:
             logger.error(
                 f"❌ Локальный сервер Bot API недоступен по адресу {LOCAL_BOT_API_URL}\n\n"
-                "Убедитесь, что:\n"
-                "1. Локальный сервер Bot API запущен\n"
-                "2. Сервер работает на правильном порту (по умолчанию 8081)\n"
-                "3. URL в token.env правильный\n\n"
-                "Для запуска локального сервера выполните:\n"
-                "telegram-bot-api --local --api-id=YOUR_API_ID --api-hash=YOUR_API_HASH\n\n"
-                "Или уберите LOCAL_BOT_API_URL из token.env для использования официального API"
+                "1. Запустите локальный сервер: python run_local_bot_api.py\n"
+                "   (нужен бинарник telegram-bot-api — см. LOCAL_BOT_API_SETUP.md)\n"
+                "2. Или уберите LOCAL_BOT_API_URL из token.env для работы через официальный API (лимит 20 МБ)."
             )
             return
 
@@ -333,6 +329,14 @@ def main():
                 pass
     
     application.post_shutdown = post_shutdown
+    
+    # Явная инициализация бота до run_polling (нужно для локального Bot API / кастомного base_url)
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    loop.run_until_complete(application.initialize())
     
     # Запускаем бота
     logger.info("Бот запущен...")

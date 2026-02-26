@@ -23,3 +23,125 @@ INFO:     ::1:55809 - "POST /api/start_analysis HTTP/1.1" 200 OK
 Задача res_d6a276b2-72a2-4768-ace4-54ac7e788037 готова! Результат: server_results/res_d6a276b2-72a2-4768-ace4-54ac7e788037_result.png
 INFO:     ::1:57039 - "GET /api/task/res_d6a276b2-72a2-4768-ace4-54ac7e788037/status HTTP/1.1" 200 OK
 INFO:     ::1:57039 - "GET /api/task/res_d6a276b2-72a2-4768-ace4-54ac7e788037/result HTTP/1.1" 200 OK
+INFO:     Started server process [7824]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:49923 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:49999 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_f34ebde8-8f3a-42da-8d10-ba941baa44f0...
+INFO:     ::1:50008 - "GET /api/task/res_f34ebde8-8f3a-42da-8d10-ba941baa44f0/status HTTP/1.1" 200 OK
+Задача res_f34ebde8-8f3a-42da-8d10-ba941baa44f0 готова! Результат: server_results/res_f34ebde8-8f3a-42da-8d10-ba941baa44f0_result.png
+INFO:     127.0.0.1:50027 - "GET /api/task/res_f34ebde8-8f3a-42da-8d10-ba941baa44f0/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50027 - "GET /api/task/res_f34ebde8-8f3a-42da-8d10-ba941baa44f0/result HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50027 - "GET /api/task/res_f34ebde8-8f3a-42da-8d10-ba941baa44f0/stats HTTP/1.1" 200 OK
+INFO:     Started server process [12420]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:50308 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [4840]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:51296 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [4200]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:50485 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_38178aad-bf54-4d95-965a-54ef69f7920c...
+[ WARN:0@73.852] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33550 (0x830e) encountered
+[ WARN:0@73.852] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33922 (0x8482) encountered
+[ WARN:0@73.852] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34735 (0x87af) encountered
+[ WARN:0@73.852] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34736 (0x87b0) encountered
+[ WARN:0@73.852] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34737 (0x87b1) encountered
+Задача res_38178aad-bf54-4d95-965a-54ef69f7920c готова! Результат: server_results/res_38178aad-bf54-4d95-965a-54ef69f7920c_result.png
+INFO:     ::1:50489 - "GET /api/task/res_38178aad-bf54-4d95-965a-54ef69f7920c/status HTTP/1.1" 200 OK
+INFO:     ::1:50489 - "GET /api/task/res_38178aad-bf54-4d95-965a-54ef69f7920c/result HTTP/1.1" 200 OK
+INFO:     ::1:50489 - "GET /api/task/res_38178aad-bf54-4d95-965a-54ef69f7920c/stats HTTP/1.1" 200 OK
+INFO:     ::1:51096 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc...
+Задача res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc готова! Результат: server_results/res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc_result.png
+INFO:     ::1:59004 - "GET /api/task/res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc/status HTTP/1.1" 200 OK
+INFO:     ::1:59004 - "GET /api/task/res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc/result HTTP/1.1" 200 OK
+INFO:     ::1:59004 - "GET /api/task/res_e0dcd11a-6e90-4dfa-8726-9ed377b7afdc/stats HTTP/1.1" 200 OK
+INFO:     Started server process [17324]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:51944 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:63293 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25...
+[ WARN:0@143.024] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33550 (0x830e) encountered
+[ WARN:0@143.024] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33922 (0x8482) encountered
+[ WARN:0@143.024] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34735 (0x87af) encountered
+[ WARN:0@143.024] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34736 (0x87b0) encountered
+[ WARN:0@143.024] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34737 (0x87b1) encountered
+Задача res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25 готова! Результат: server_results/res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25_result.png
+INFO:     ::1:63311 - "GET /api/task/res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25/status HTTP/1.1" 200 OK
+INFO:     ::1:63311 - "GET /api/task/res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25/result HTTP/1.1" 200 OK
+INFO:     ::1:63311 - "GET /api/task/res_a7bd4c4f-87a9-4f8c-909e-a55bc72e1b25/stats HTTP/1.1" 200 OK
+INFO:     ::1:63487 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_f62f8dae-3337-464d-aa39-e27d0917b34e...
+Задача res_f62f8dae-3337-464d-aa39-e27d0917b34e готова! Результат: server_results/res_f62f8dae-3337-464d-aa39-e27d0917b34e_result.png
+INFO:     ::1:63499 - "GET /api/task/res_f62f8dae-3337-464d-aa39-e27d0917b34e/status HTTP/1.1" 200 OK
+INFO:     ::1:63499 - "GET /api/task/res_f62f8dae-3337-464d-aa39-e27d0917b34e/result HTTP/1.1" 200 OK
+INFO:     ::1:63499 - "GET /api/task/res_f62f8dae-3337-464d-aa39-e27d0917b34e/stats HTTP/1.1" 200 OK
+INFO:     Started server process [22272]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64943 - "POST /api/start_analysis HTTP/1.1" 200 OK
+������ ��������� agriculture_classification ��� ������ res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7...
+������ res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7 ������! ���������: server_results/res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7_result.png
+INFO:     127.0.0.1:64949 - "GET /api/task/res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64949 - "GET /api/task/res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7/result HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64949 - "GET /api/task/res_6ead217f-a2ce-40c8-8c11-daf354bcf3d7/stats HTTP/1.1" 200 OK
+INFO:     Started server process [3016]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63426 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [20528]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62541 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [23224]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:65108 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [18752]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62095 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [23728]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:58235 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [14796]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54808 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [15504]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:57280 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49608 - "POST /api/start_analysis HTTP/1.1" 200 OK
+[ WARN:0@54.165] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33550 (0x830e) encountered
+[ WARN:0@54.166] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33922 (0x8482) encountered
+[ WARN:0@54.166] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34735 (0x87af) encountered
+[ WARN:0@54.166] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34736 (0x87b0) encountered
+[ WARN:0@54.166] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34737 (0x87b1) encountered
+������ ��������� agriculture_classification ��� ������ res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4...
+INFO:     127.0.0.1:49648 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/status HTTP/1.1" 200 OK
+������ res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4 ������! ���������: server_results/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4_result.png
+INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/result HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/stats HTTP/1.1" 200 OK

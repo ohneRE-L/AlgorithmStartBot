@@ -11,10 +11,14 @@ load_dotenv('.env')  # Затем .env (если token.env не найден, э
 # Токен Telegram бота
 BOT_TOKEN = os.getenv('BOT_TOKEN', '')
 
+# Telegram Application API (создаётся на my.telegram.org) — нужны для локального Bot API
+# Локальный сервер позволяет загружать файлы до 2000 МБ вместо 20 МБ
+TELEGRAM_API_ID = os.getenv('TELEGRAM_API_ID', '')
+TELEGRAM_API_HASH = os.getenv('TELEGRAM_API_HASH', '')
+
 # URL локального сервера Bot API (если используется)
-# Если установлен, бот будет использовать локальный сервер вместо официального API
-# Это позволяет загружать файлы до 2000 МБ вместо 20 МБ
-# Пример: 'http://localhost:8081' (по умолчанию порт 8081)
+# При использовании задайте в token.env и запустите локальный сервер (см. run_local_bot_api.py)
+# Пример: 'http://localhost:8081'
 LOCAL_BOT_API_URL = os.getenv('LOCAL_BOT_API_URL', '')
 
 # URL сервера алгоритмов
@@ -29,13 +33,18 @@ SUPPORTED_FILE_FORMATS = ['.tif', '.tiff', '.geotiff', '.jpg', '.jpeg', '.png']
 USE_LOCAL_BOT_API = bool(LOCAL_BOT_API_URL)
 
 if USE_LOCAL_BOT_API:
-    # С локальным сервером Bot API можно загружать до 2000 МБ
-    MAX_FILE_SIZE = 2000 * 1024 * 1024  # 2000 МБ
-    TELEGRAM_MAX_FILE_SIZE = 2000 * 1024 * 1024  # 2000 МБ
+    # Локальный Bot API (api_id/api_hash): макс. размер по документации Telegram — 2000 МБ
+    MAX_FILE_SIZE = 2000 * 1024 * 1024
+    TELEGRAM_MAX_FILE_SIZE = 2000 * 1024 * 1024
 else:
     # Без локального сервера лимит - 20 МБ
     MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 МБ для валидации
     TELEGRAM_MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 МБ для скачивания
+
+# Таймауты для скачивания файлов (секунды). Для больших файлов через локальный API — больше
+FILE_DOWNLOAD_READ_TIMEOUT = 600 if USE_LOCAL_BOT_API else 30
+FILE_DOWNLOAD_WRITE_TIMEOUT = 600 if USE_LOCAL_BOT_API else 30
+FILE_DOWNLOAD_CONNECT_TIMEOUT = 30
 
 # Доступные алгоритмы (один алгоритм OEM-Lightweight)
 AVAILABLE_ALGORITHMS = {

@@ -115,21 +115,25 @@ def run_real_algorithm(task_id: str, input_path: str, algo_type: str):
         percents = counts.astype(np.float32) * 100.0 / float(total)
 
         lines = []
+        stats = []
         for idx, (name, p) in enumerate(zip(config.class_names, percents)):
-            lines.append(f"{name}: {p:.1f}%")
+            lines.append((idx, f"{name}: {p:.1f}%"))
+            stats.append({"name": name, "percent": float(p)})
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         font_scale = 0.5
         thickness = 1
         line_height = 0
         max_width = 0
-        for line in lines:
+        for _, line in lines:
             (w, h), _ = cv2.getTextSize(line, font, font_scale, thickness)
             max_width = max(max_width, w)
             line_height = max(line_height, h)
 
         padding = 8
-        box_w = max_width + padding * 2
+        color_box_size = max(12, line_height - 2)
+        text_offset = color_box_size + 6
+        box_w = text_offset + max_width + padding * 2
         box_h = line_height * len(lines) + padding * 2 + 4 * (len(lines) - 1)
 
         # Рисуем таблицу в левом верхнем углу
@@ -138,11 +142,17 @@ def run_real_algorithm(task_id: str, input_path: str, algo_type: str):
         cv2.rectangle(colored, (x0, y0), (x1, y1), (0, 0, 0), thickness=-1)
 
         y_text = y0 + padding + line_height
-        for line in lines:
-            cv2.putText(colored, line, (x0 + padding, y_text), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+        for idx, line in lines:
+            # Цветной квадрат — классы в config в BGR
+            cx, cy = x0 + padding, y_text - line_height + 2
+            color_bgr = tuple(int(c) for c in config.class_colors[idx])
+            cv2.rectangle(colored, (cx, cy), (cx + color_box_size, cy + color_box_size), color_bgr, thickness=-1)
+            cv2.rectangle(colored, (cx, cy), (cx + color_box_size, cy + color_box_size), (255, 255, 255), thickness=1)
+            cv2.putText(colored, line, (x0 + padding + text_offset, y_text), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
             y_text += line_height + 4
 
-        # 7. Конвертируем в RGB, как в eval_oem_lightweight, и сохраняем
+        # 7. Сохраняем статистику в задаче, конвертируем в RGB и сохраняем изображение
+        tasks[task_id]["stats"] = stats
         colored = cv2.cvtColor(colored, cv2.COLOR_BGR2RGB)
         os.makedirs("server_results", exist_ok=True)
         result_path = f"server_results/{task_id}_result.png"
@@ -201,6 +211,15 @@ async def get_result(task_id: str):
         from fastapi.responses import FileResponse
         return FileResponse(task["result_file"])
     return {"error": "Not ready"}
+
+
+@app.get("/api/task/{task_id}/stats")
+async def get_stats(task_id: str):
+    """Возвращает статистику по классам для задачи."""
+    task = tasks.get(task_id)
+    if not task or task.get("status") != "completed" or "stats" not in task:
+        return {"error": "Not ready"}
+    return {"stats": task["stats"]}
 
 
 if __name__ == "__main__":
