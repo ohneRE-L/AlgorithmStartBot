@@ -145,3 +145,124 @@ INFO:     127.0.0.1:49648 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a675
 INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/status HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/result HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49688 - "GET /api/task/res_63f8c29f-a1ef-405d-8838-7d6e4a6758d4/stats HTTP/1.1" 200 OK
+INFO:     Started server process [12652]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     Started server process [4404]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:62626 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:60167 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_adf372d3-e74f-4af4-93c9-89e509af10db...
+Задача res_adf372d3-e74f-4af4-93c9-89e509af10db готова! Результат: server_results/res_adf372d3-e74f-4af4-93c9-89e509af10db_result.png
+INFO:     ::1:60174 - "GET /api/task/res_adf372d3-e74f-4af4-93c9-89e509af10db/status HTTP/1.1" 200 OK
+INFO:     ::1:60174 - "GET /api/task/res_adf372d3-e74f-4af4-93c9-89e509af10db/result HTTP/1.1" 200 OK
+INFO:     ::1:60174 - "GET /api/task/res_adf372d3-e74f-4af4-93c9-89e509af10db/stats HTTP/1.1" 200 OK
+INFO:     Started server process [24180]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     Started server process [8208]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:54042 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [23224]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:55598 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [21548]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:58816 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [11208]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:58919 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [4552]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:59389 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [17764]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:53560 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [24612]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:63962 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:55134 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_65d33d57-54c8-4fe7-8a3a-32bac23b2711...
+Задача res_65d33d57-54c8-4fe7-8a3a-32bac23b2711 готова! Результат: server_results/res_65d33d57-54c8-4fe7-8a3a-32bac23b2711_result.png
+INFO:     ::1:55159 - "GET /api/task/res_65d33d57-54c8-4fe7-8a3a-32bac23b2711/status HTTP/1.1" 200 OK
+INFO:     ::1:55159 - "GET /api/task/res_65d33d57-54c8-4fe7-8a3a-32bac23b2711/result HTTP/1.1" 200 OK
+INFO:     ::1:55159 - "GET /api/task/res_65d33d57-54c8-4fe7-8a3a-32bac23b2711/stats HTTP/1.1" 200 OK
+INFO:     ::1:64333 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_0067fef4-73ab-4bec-a62f-a856371ae49d...
+Задача res_0067fef4-73ab-4bec-a62f-a856371ae49d готова! Результат: server_results/res_0067fef4-73ab-4bec-a62f-a856371ae49d_result.png
+INFO:     ::1:64387 - "GET /api/task/res_0067fef4-73ab-4bec-a62f-a856371ae49d/status HTTP/1.1" 200 OK
+INFO:     ::1:64387 - "GET /api/task/res_0067fef4-73ab-4bec-a62f-a856371ae49d/result HTTP/1.1" 200 OK
+INFO:     ::1:64387 - "GET /api/task/res_0067fef4-73ab-4bec-a62f-a856371ae49d/stats HTTP/1.1" 200 OK
+INFO:     ::1:60419 - "POST /api/start_analysis HTTP/1.1" 200 OK
+[ WARN:0@196.811] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33550 (0x830e) encountered
+[ WARN:0@196.811] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 33922 (0x8482) encountered
+[ WARN:0@196.811] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34735 (0x87af) encountered
+[ WARN:0@196.811] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34736 (0x87b0) encountered
+[ WARN:0@196.811] global grfmt_tiff.cpp:122 cv::TIFF_Warning TIFFReadDirectory: Unknown field with tag 34737 (0x87b1) encountered
+Запуск алгоритма agriculture_classification для задачи res_52ebec5a-7c75-4ef4-b25c-52f287077197...
+Задача res_52ebec5a-7c75-4ef4-b25c-52f287077197 готова! Результат: server_results/res_52ebec5a-7c75-4ef4-b25c-52f287077197_result.png
+INFO:     ::1:60448 - "GET /api/task/res_52ebec5a-7c75-4ef4-b25c-52f287077197/status HTTP/1.1" 200 OK
+INFO:     ::1:60448 - "GET /api/task/res_52ebec5a-7c75-4ef4-b25c-52f287077197/result HTTP/1.1" 200 OK
+INFO:     ::1:60448 - "GET /api/task/res_52ebec5a-7c75-4ef4-b25c-52f287077197/stats HTTP/1.1" 200 OK
+INFO:     Started server process [23252]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:64462 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:54813 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_dd2ebe62-83e1-4823-8175-1cb3243ef006...
+Задача res_dd2ebe62-83e1-4823-8175-1cb3243ef006 готова! Результат: server_results/res_dd2ebe62-83e1-4823-8175-1cb3243ef006_result.png
+INFO:     ::1:54841 - "GET /api/task/res_dd2ebe62-83e1-4823-8175-1cb3243ef006/status HTTP/1.1" 200 OK
+INFO:     ::1:54841 - "GET /api/task/res_dd2ebe62-83e1-4823-8175-1cb3243ef006/result HTTP/1.1" 200 OK
+INFO:     ::1:54841 - "GET /api/task/res_dd2ebe62-83e1-4823-8175-1cb3243ef006/stats HTTP/1.1" 200 OK
+INFO:     Started server process [21664]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:54162 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [25172]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:49188 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:62079 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_a4153bc2-595c-46cf-9b51-9948a8148e91...
+Задача res_a4153bc2-595c-46cf-9b51-9948a8148e91 готова! Результат: server_results/res_a4153bc2-595c-46cf-9b51-9948a8148e91_result.png
+INFO:     ::1:62128 - "GET /api/task/res_a4153bc2-595c-46cf-9b51-9948a8148e91/status HTTP/1.1" 200 OK
+INFO:     ::1:62128 - "GET /api/task/res_a4153bc2-595c-46cf-9b51-9948a8148e91/result HTTP/1.1" 200 OK
+INFO:     ::1:62128 - "GET /api/task/res_a4153bc2-595c-46cf-9b51-9948a8148e91/stats HTTP/1.1" 200 OK
+INFO:     ::1:50060 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_39323419-8905-4d15-80b5-b9a59200c782...
+Задача res_39323419-8905-4d15-80b5-b9a59200c782 готова! Результат: server_results/res_39323419-8905-4d15-80b5-b9a59200c782_result.png
+INFO:     ::1:58147 - "GET /api/task/res_39323419-8905-4d15-80b5-b9a59200c782/status HTTP/1.1" 200 OK
+INFO:     ::1:58147 - "GET /api/task/res_39323419-8905-4d15-80b5-b9a59200c782/result HTTP/1.1" 200 OK
+INFO:     ::1:58147 - "GET /api/task/res_39323419-8905-4d15-80b5-b9a59200c782/stats HTTP/1.1" 200 OK
+INFO:     Started server process [15612]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:61552 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:51011 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0...
+Задача res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0 готова! Результат: server_results/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0_result.png
+INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/status HTTP/1.1" 200 OK
+INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/result HTTP/1.1" 200 OK
+INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/stats HTTP/1.1" 200 OK

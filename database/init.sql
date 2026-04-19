@@ -37,7 +37,7 @@ CREATE TABLE analysis_requests (
     region_id UUID REFERENCES regions(id),
     source_image_id UUID NOT NULL REFERENCES source_images(id),
     algorithm_name VARCHAR(100) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR')),
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR', 'PENDING_MODERATION', 'REJECTED', 'CANCELLED')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

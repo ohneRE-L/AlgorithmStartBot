@@ -3,16 +3,17 @@
 """
 import asyncio
 import logging
-import sys
-import selectors
 import subprocess
+import sys
 from pathlib import Path
+
 from telegram import Update
 from telegram.error import TimedOut, NetworkError, TelegramError
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
     filters,
     ContextTypes
 )
@@ -20,17 +21,22 @@ from telegram.ext import (
 # Устанавливаем SelectorEventLoop для Windows (требуется для psycopg)
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-from config import BOT_TOKEN, AVAILABLE_ALGORITHMS, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE, ALGORITHM_SERVER_URL
+from config import BOT_TOKEN, LOCAL_BOT_API_URL, USE_LOCAL_BOT_API, TELEGRAM_MAX_FILE_SIZE, ALGORITHM_SERVER_URL
 from handlers.command_handler import (
     start_command,
     help_command,
     cancel_command,
-    show_algorithms,
-    get_main_keyboard
+    get_main_keyboard,
+    my_tasks_command,
+    cancel_task_command,
+    setmod_command,
+    handle_operator_callback,
+    get_file_upload_keyboard
 )
-from handlers.algorithm_handler import handle_algorithm_selection
 from handlers.file_handler import handle_file
+from handlers.moderator_handler import handle_moderator_callback, queue_command, analytics_command
 from database.db_session import init_db, close_db, AsyncSessionLocal
+from database.repository import UserRepository
 
 # Настройка логирования
 logging.basicConfig(
@@ -47,12 +53,19 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     """Обрабатывает текстовые сообщения"""
     user_text = update.message.text
     user_state = context.user_data.get('state')
+    user_role = context.user_data.get('role')
+    
+    # Синхронизируем роль, если её нет в памяти
+    if not user_role:
+        async with AsyncSessionLocal() as session:
+            db_user = await UserRepository.get_or_create_user(session, update.effective_user.id, update.effective_user.username)
+            user_role = db_user.role
+            context.user_data['role'] = user_role
     
     # Обработка главных кнопок
     if user_text == "📁 Отправить снимок":
         # Сразу просим прислать файл для анализа
         context.user_data['state'] = 'waiting_file'
-        from handlers.algorithm_handler import get_file_upload_keyboard
         await update.message.reply_text(
             "📁 Пришлите снимок (как документ или фото) для анализа.",
             reply_markup=get_file_upload_keyboard()
@@ -62,22 +75,31 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     if user_text == "❓ Помощь" or user_text.lower() in ['помощь', 'help']:
         await help_command(update, context)
         return
+        
+    if user_text == "📋 Мои задачи" or user_text.lower() in ['мои задачи', '/my_tasks']:
+        await my_tasks_command(update, context)
+        return
+
+    if user_text == "📈 Аналитика":
+        await analytics_command(update, context)
+        return
     
     if user_text == "❌ Отмена" or user_text.lower() in ['отмена', 'cancel']:
         await cancel_command(update, context)
         return
     
     if user_text == "🏠 Главное меню" or user_text.lower() in ['главное меню', 'меню', 'home']:
+        r = context.user_data.get('role', 'OPERATOR')
         context.user_data.clear()
+        context.user_data['role'] = r
         await update.message.reply_text(
             "🏠 Главное меню",
-            reply_markup=get_main_keyboard()
+            reply_markup=get_main_keyboard(r)
         )
         return
     
     if user_text == "🔄 Новый анализ" or user_text == "📁 Отправить другой снимок":
         context.user_data.clear()
-        from handlers.algorithm_handler import get_file_upload_keyboard
         context.user_data['state'] = 'waiting_file'
         await update.message.reply_text(
             "📁 Пришлите следующий снимок для анализа.",
@@ -88,7 +110,6 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Обработка кнопок при ошибках
     if user_text == "🔄 Попробовать снова" or user_text.lower() in ['попробовать снова', 'retry']:
         context.user_data['state'] = 'waiting_file'
-        from handlers.algorithm_handler import get_file_upload_keyboard
         await update.message.reply_text(
             "📁 Пришлите снимок для анализа ещё раз.",
             reply_markup=get_file_upload_keyboard()
@@ -107,7 +128,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     # Если состояние не определено, предлагаем начать заново
     await update.message.reply_text(
         "Не понимаю команду. Используйте кнопки для навигации.",
-        reply_markup=get_main_keyboard()
+        reply_markup=get_main_keyboard(user_role)
     )
 
 
@@ -115,6 +136,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     """Обработчик ошибок"""
     logger.error("Exception while handling an update:", exc_info=context.error)
     
+    user_role = context.user_data.get('role', 'OPERATOR') if getattr(context, 'user_data', None) else 'OPERATOR'
     # Если это ошибка таймаута или сети, пытаемся отправить сообщение пользователю
     if isinstance(context.error, (TimedOut, NetworkError)):
         logger.warning(f"Network error: {context.error}")
@@ -122,7 +144,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
             try:
                 await update.effective_message.reply_text(
                     "⚠️ Произошла временная ошибка сети. Пожалуйста, попробуйте еще раз.",
-                    reply_markup=get_main_keyboard()
+                    reply_markup=get_main_keyboard(user_role)
                 )
             except Exception as e:
                 logger.error(f"Failed to send error message: {e}")
@@ -132,7 +154,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
             try:
                 await update.effective_message.reply_text(
                     "❌ Произошла ошибка при обработке запроса. Попробуйте еще раз или используйте /start.",
-                    reply_markup=get_main_keyboard()
+                    reply_markup=get_main_keyboard(user_role)
                 )
             except Exception as e:
                 logger.error(f"Failed to send error message: {e}")
@@ -140,6 +162,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 def check_local_server_sync(url: str) -> bool:
     """Проверяет доступность локального HTTP-сервера (синхронно)"""
+    global urllib
     try:
         import urllib.request
         import urllib.error
@@ -272,7 +295,12 @@ def main():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("cancel", cancel_command))
+    application.add_handler(CommandHandler("cancel_task", cancel_task_command))
+    application.add_handler(CommandHandler("setmod", setmod_command))
     
+    application.add_handler(CallbackQueryHandler(handle_moderator_callback, pattern="^mod_"))
+    application.add_handler(CallbackQueryHandler(handle_operator_callback, pattern="^optcancel_"))
+
     # Обработчик текстовых сообщений
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
     
@@ -289,8 +317,6 @@ def main():
     async def post_init(app: Application) -> None:
         """Инициализация после создания приложения"""
         try:
-            # Небольшая задержка для стабильности подключения
-            import asyncio
             await asyncio.sleep(0.5)
             await init_db()
             logger.info("✅ База данных инициализирована")

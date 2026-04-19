@@ -20,8 +20,8 @@ from handlers.command_handler import (
     get_after_result_keyboard,
 )
 from database.db_session import AsyncSessionLocal
-# Импортируем обновленные репозитории
 from database.repository import UserRepository, RequestRepository, ResultRepository
+from handlers.moderator_handler import get_moderation_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +249,7 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await client.close()
         asyncio.create_task(
-            monitor_task_status(update, context, server_task_id, download_path, request_id)
+            monitor_task_status(update, context, server_task_id, download_path, request_id, processing_msg)
         )
 
     except Exception as e:
@@ -267,32 +267,28 @@ async def monitor_task_status(
         context: ContextTypes.DEFAULT_TYPE,
         server_task_id: str,
         file_path: str,
-        db_request_id: str = None
+        db_request_id: str = None,
+        processing_msg = None
 ):
     client = AlgorithmServerClient()
     max_attempts = 60
     attempt = 0
     try:
+        status_map = {
+            'processing': 'PROCESSING',
+            'completed': 'COMPLETED',
+            'failed': 'ERROR',
+            'queued': 'PENDING'
+        }
         while attempt < max_attempts:
             await asyncio.sleep(5)
             status, error = await client.check_status(server_task_id)
             attempt += 1
 
-            # Маппинг статусов сервера на статусы БД
-            # server: processing, completed, failed, queued
-            # db: PENDING, PROCESSING, COMPLETED, ERROR
             if db_request_id and status:
                 try:
                     async with AsyncSessionLocal() as session:
-                        status_map = {
-                            'processing': 'PROCESSING',
-                            'completed': 'COMPLETED',
-                            'failed': 'ERROR',
-                            'queued': 'PENDING'
-                        }
                         db_status = status_map.get(status, 'PROCESSING')
-                        # Не обновляем статус каждый раз, если он не меняется, чтобы не спамить БД,
-                        # но в MVP можно оставить простой update
                         await RequestRepository.update_status(
                             session=session,
                             request_id=db_request_id,
@@ -302,13 +298,11 @@ async def monitor_task_status(
                     logger.error(f"Error updating DB status: {e}")
 
             if error:
-                try:
-                    await update.message.reply_text(
-                        f"❌ Ошибка при проверке статуса:\n{error}\n\nВыберите действие:",
-                        reply_markup=get_error_keyboard()
-                    )
-                except:
-                    pass
+                await _safe_edit_or_reply(
+                    processing_msg, update,
+                    f"❌ Ошибка при проверке статуса:\n{error}\n\nВыберите действие:",
+                    reply_markup=get_error_keyboard()
+                )
                 if db_request_id:
                     async with AsyncSessionLocal() as session:
                         await RequestRepository.update_status(session, db_request_id, 'ERROR')
@@ -316,7 +310,7 @@ async def monitor_task_status(
                 break
 
             if status == 'completed':
-                await update.message.reply_text("✅ Анализ завершен! Получаю результат...")
+                await _safe_edit_or_reply(processing_msg, update, "✅ Анализ завершен! Получаю результат...")
                 success, result_path, error = await client.get_result(server_task_id)
 
                 if success:
@@ -335,7 +329,7 @@ async def monitor_task_status(
                     if db_request_id:
                         try:
                             async with AsyncSessionLocal() as session:
-                                await RequestRepository.update_status(session, db_request_id, 'COMPLETED')
+                                await RequestRepository.update_status(session, db_request_id, 'PENDING_MODERATION')
                                 # Создаем метаданные для примера
                                 meta = {
                                     "status": "success",
@@ -347,41 +341,55 @@ async def monitor_task_status(
                                     request_id=db_request_id,
                                     metadata=meta
                                 )
+                                
+                                # Отправляем всем модераторам на проверку
+                                moderators = await UserRepository.get_all_moderators(session)
+                                if moderators:
+                                    caption_lines = [
+                                        f"🛡 **Новая заявка на модерацию**",
+                                        f"ID: {db_request_id}",
+                                        f"Пользователь: {update.effective_user.id}",
+                                        f"Алгоритм: {context.user_data.get('selected_algorithm', {}).get('name', 'N/A')}",
+                                        "", "Статистика:"
+                                    ]
+                                    caption_lines.extend(summary_lines)
+                                    caption = "\n".join(caption_lines)
+                                    
+                                    for mod in moderators:
+                                        try:
+                                            with open(result_path, 'rb') as f:
+                                                await context.bot.send_photo(
+                                                    chat_id=mod.telegram_id,
+                                                    photo=f,
+                                                    caption=caption,
+                                                    reply_markup=get_moderation_keyboard(db_request_id),
+                                                    parse_mode="Markdown"
+                                                )
+                                        except Exception as e:
+                                            logger.error(f"Failed to send to moderator {mod.telegram_id}: {e}")
+
                         except Exception as e:
-                            logger.error(f"Error saving result to DB: {e}", exc_info=True)
+                            logger.error(f"Error saving result to DB or notifying mods: {e}", exc_info=True)
 
-                    # 2. Отправляем файл пользователю
+                    # 2. Уведомляем пользователя
+                    await _safe_edit_or_reply(
+                        processing_msg, update,
+                        "✅ Анализ на сервере завершен.\n⏳ Ваш снимок сейчас находится на проверке у специалиста (модератора).\nВы получите уведомление как только он будет одобрен.",
+                        reply_markup=get_main_keyboard()
+                    )
+
+                    # Чистим только ИСХОДНЫЙ файл
                     try:
-                        with open(result_path, 'rb') as result_file:
-                            caption_lines = [
-                                "📊 Результат анализа",
-                                f"Алгоритм: {context.user_data.get('selected_algorithm', {}).get('name', 'N/A')}",
-                            ]
-                            if summary_lines:
-                                caption_lines.append("Классы:")
-                                caption_lines.extend(summary_lines)
-                            caption = "\n".join(caption_lines)
-
-                            await update.message.reply_document(
-                                document=result_file,
-                                caption=caption
-                            )
-                        await update.message.reply_text("✅ Результат успешно отправлен!",
-                                                        reply_markup=get_after_result_keyboard())
-
-                        # Чистим файлы
-                        try:
-                            os.remove(file_path)
-                            os.remove(result_path)
-                        except:
-                            pass
-
-                    except Exception as e:
-                        logger.error(f"Error sending file: {e}")
-                        await update.message.reply_text("❌ Ошибка отправки файла.", reply_markup=get_error_keyboard())
+                        os.remove(file_path)
+                        # result_path НЕ УДАЛЯЕМ, пока модератор не проверит
+                    except:
+                        pass
                 else:
-                    await update.message.reply_text(f"❌ Не удалось скачать результат: {error}",
-                                                    reply_markup=get_error_keyboard())
+                    await _safe_edit_or_reply(
+                        processing_msg, update,
+                        f"❌ Не удалось скачать результат: {error}",
+                        reply_markup=get_error_keyboard()
+                    )
                     if db_request_id:
                         async with AsyncSessionLocal() as session:
                             await RequestRepository.update_status(session, db_request_id, 'ERROR')
@@ -390,13 +398,20 @@ async def monitor_task_status(
                 break
 
             elif status == 'failed':
-                await update.message.reply_text("❌ Анализ завершился с ошибкой на сервере.",
-                                                reply_markup=get_error_keyboard())
+                await _safe_edit_or_reply(
+                    processing_msg, update,
+                    "❌ Анализ завершился с ошибкой на сервере.",
+                    reply_markup=get_error_keyboard()
+                )
                 context.user_data.clear()
                 break
 
             if attempt >= max_attempts:
-                await update.message.reply_text("⏱️ Время ожидания истекло.", reply_markup=get_error_keyboard())
+                await _safe_edit_or_reply(
+                    processing_msg, update,
+                    "⏱️ Время ожидания истекло.",
+                    reply_markup=get_error_keyboard()
+                )
                 if db_request_id:
                     async with AsyncSessionLocal() as session:
                         await RequestRepository.update_status(session, db_request_id, 'ERROR')

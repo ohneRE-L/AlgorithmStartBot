@@ -2,13 +2,22 @@ import logging
 import os
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from database.models import User, Region, SourceImage, AnalysisRequest, Result
 
 logger = logging.getLogger(__name__)
 
 
 class UserRepository:
+    @staticmethod
+    async def get_all_moderators(session: AsyncSession) -> List[User]:
+        try:
+            result = await session.execute(select(User).where(User.role == 'MODERATOR'))
+            return list(result.scalars().all())
+        except Exception as e:
+            logger.error(f"Error getting moderators: {e}", exc_info=True)
+            return []
+
     @staticmethod
     async def get_or_create_user(
             session: AsyncSession,
@@ -44,6 +53,74 @@ class UserRepository:
 
 
 class RequestRepository:
+    @staticmethod
+    async def get_request_by_id(session: AsyncSession, request_id: str) -> Optional[AnalysisRequest]:
+        try:
+            result = await session.execute(
+                select(AnalysisRequest).where(AnalysisRequest.id == request_id)
+            )
+            return result.scalar_one_or_none()
+        except Exception as e:
+            logger.error(f"Error getting request {request_id}: {e}", exc_info=True)
+            return None
+
+    @staticmethod
+    async def get_user_tasks(session: AsyncSession, user_id: int) -> List[AnalysisRequest]:
+        try:
+            result = await session.execute(
+                select(AnalysisRequest)
+                .where(AnalysisRequest.user_id == user_id)
+                .order_by(AnalysisRequest.created_at.desc())
+            )
+            return list(result.scalars().all())
+        except Exception as e:
+            logger.error(f"Error getting user tasks: {e}", exc_info=True)
+            return []
+
+    @staticmethod
+    async def get_all_tasks(session: AsyncSession) -> List[AnalysisRequest]:
+        try:
+            result = await session.execute(
+                select(AnalysisRequest).order_by(AnalysisRequest.created_at.desc())
+            )
+            return list(result.scalars().all())
+        except Exception as e:
+            logger.error(f"Error getting all tasks: {e}", exc_info=True)
+            return []
+
+    @staticmethod
+    async def get_tasks_stats(session: AsyncSession) -> dict:
+        try:
+            res = await session.execute(
+                select(AnalysisRequest.status, func.count()).group_by(AnalysisRequest.status)
+            )
+            rows = res.all()
+            total = sum(count for _, count in rows)
+            return {
+                "total": total,
+                "by_status": {status: count for status, count in rows}
+            }
+        except Exception as e:
+            logger.error(f"Error getting stats: {e}", exc_info=True)
+            return {"total": 0, "by_status": {}}
+
+    @staticmethod
+    async def cancel_request(session: AsyncSession, request_id: str, user_id: int) -> bool:
+        try:
+            result = await session.execute(
+                update(AnalysisRequest)
+                .where(AnalysisRequest.id == request_id)
+                .where(AnalysisRequest.user_id == user_id)
+                .where(AnalysisRequest.status.in_(['PENDING', 'PENDING_MODERATION']))
+                .values(status='CANCELLED')
+            )
+            await session.commit()
+            return result.rowcount > 0
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Error cancelling request: {e}", exc_info=True)
+            return False
+
     @staticmethod
     async def create_analysis_request(
             session: AsyncSession,
@@ -95,7 +172,7 @@ class RequestRepository:
             status: str
     ) -> bool:
         try:
-            valid_statuses = ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR')
+            valid_statuses = ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR', 'PENDING_MODERATION', 'REJECTED', 'CANCELLED')
             if status not in valid_statuses:
                 logger.error(f"Invalid status: {status}")
                 return False
@@ -115,6 +192,15 @@ class RequestRepository:
 
 
 class ResultRepository:
+    @staticmethod
+    async def get_result_by_request(session: AsyncSession, request_id: str) -> Optional[Result]:
+        try:
+            res = await session.execute(select(Result).where(Result.analysis_request_id == request_id))
+            return res.scalar_one_or_none()
+        except Exception as e:
+            logger.error(f"Error getting result: {e}", exc_info=True)
+            return None
+
     @staticmethod
     async def create_result(
             session: AsyncSession,

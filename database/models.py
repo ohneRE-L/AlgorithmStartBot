@@ -67,7 +67,7 @@ class AnalysisRequest(Base):
     result = relationship("Result", back_populates="request", uselist=False, cascade="all, delete-orphan")
 
     __table_args__ = (
-        CheckConstraint("status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR')", name='check_request_status'),
+        CheckConstraint("status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'ERROR', 'PENDING_MODERATION', 'REJECTED', 'CANCELLED')", name='check_request_status'),
     )
 
 
