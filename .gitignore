@@ -97,4 +97,14 @@ celerybeat-schedule
 .spyderproject
 .spyproject
 .ropeproject
+
+# Local Bot API & Binaries
+telegram-bot-api.exe
+*.dll
+*.pid
+*.binlog
+botapi-*/
+8576890077~*/
 server_uploads/
+server_results/
+uploads/
