@@ -30,6 +30,7 @@ from handlers.command_handler import (
     my_tasks_command,
     cancel_task_command,
     setmod_command,
+    setop_command,
     handle_operator_callback,
     get_file_upload_keyboard
 )
@@ -79,9 +80,12 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     if user_text == "📋 Мои задачи" or user_text.lower() in ['мои задачи', '/my_tasks']:
         await my_tasks_command(update, context)
         return
-
-    if user_text == "📈 Аналитика":
+    if user_text == "📈 Аналитика" and str(user_role).upper() == 'MODERATOR':
         await analytics_command(update, context)
+        return
+
+    if user_text == "🛡 Очередь задач" and str(user_role).upper() == 'MODERATOR':
+        await queue_command(update, context)
         return
     
     if user_text == "❌ Отмена" or user_text.lower() in ['отмена', 'cancel']:
@@ -297,6 +301,7 @@ def main():
     application.add_handler(CommandHandler("cancel", cancel_command))
     application.add_handler(CommandHandler("cancel_task", cancel_task_command))
     application.add_handler(CommandHandler("setmod", setmod_command))
+    application.add_handler(CommandHandler("setop", setop_command))
     
     application.add_handler(CallbackQueryHandler(handle_moderator_callback, pattern="^mod_"))
     application.add_handler(CallbackQueryHandler(handle_operator_callback, pattern="^optcancel_"))

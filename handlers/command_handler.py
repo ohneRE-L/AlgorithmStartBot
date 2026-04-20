@@ -13,14 +13,17 @@ logger = logging.getLogger(__name__)
 
 def get_main_keyboard(user_role='OPERATOR'):
     """Главная клавиатура: разные кнопки в зависимости от логики"""
-    keyboard = [
-        [KeyboardButton("📁 Отправить снимок")],
-        [KeyboardButton("📋 Мои задачи")],
-        [KeyboardButton("❓ Помощь")]
-    ]
-    if user_role == 'MODERATOR':
-        keyboard.append([KeyboardButton("🛡 Очередь задач"), KeyboardButton("📈 Аналитика")])
-        
+    role = str(user_role).upper()
+    if role == 'MODERATOR':
+        keyboard = [
+            [KeyboardButton("🛡 Очередь задач"), KeyboardButton("📈 Аналитика")]
+        ]
+    else:
+        keyboard = [
+            [KeyboardButton("📁 Отправить снимок")],
+            [KeyboardButton("📋 Мои задачи")],
+            [KeyboardButton("❓ Помощь")]
+        ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
 
@@ -107,15 +110,17 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/cancel - отменить текущую операцию"
     )
     
-    await update.message.reply_text(help_text, reply_markup=get_main_keyboard())
+    await update.message.reply_text(help_text, reply_markup=get_main_keyboard(context.user_data.get('role')))
 
 
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /cancel"""
+    role = context.user_data.get('role', 'OPERATOR')
     context.user_data.clear()
+    context.user_data['role'] = role
     await update.message.reply_text(
         "❌ Операция отменена.",
-        reply_markup=get_main_keyboard()
+        reply_markup=get_main_keyboard(role)
     )
 
 
@@ -171,6 +176,21 @@ async def setmod_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         context.user_data['role'] = 'MODERATOR'
         await update.message.reply_text("✅ Теперь вы МОДЕРАТОР. Ваше меню обновлено.", reply_markup=get_main_keyboard('MODERATOR'))
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка: {e}")
+
+
+async def setop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда для возврата роли оператора"""
+    user_id = update.effective_user.id
+    try:
+        async with AsyncSessionLocal() as session:
+            user = await UserRepository.get_or_create_user(session, user_id, update.effective_user.username)
+            user.role = 'OPERATOR'
+            await session.commit()
+            
+        context.user_data['role'] = 'OPERATOR'
+        await update.message.reply_text("✅ Теперь вы ОПЕРАТОР. Меню восстановлено.", reply_markup=get_main_keyboard('OPERATOR'))
     except Exception as e:
         await update.message.reply_text(f"Ошибка: {e}")
 

@@ -346,7 +346,7 @@ async def monitor_task_status(
                                 moderators = await UserRepository.get_all_moderators(session)
                                 if moderators:
                                     caption_lines = [
-                                        f"🛡 **Новая заявка на модерацию**",
+                                        f"🛡 <b>Новая заявка на модерацию</b>",
                                         f"ID: {db_request_id}",
                                         f"Пользователь: {update.effective_user.id}",
                                         f"Алгоритм: {context.user_data.get('selected_algorithm', {}).get('name', 'N/A')}",
@@ -363,7 +363,7 @@ async def monitor_task_status(
                                                     photo=f,
                                                     caption=caption,
                                                     reply_markup=get_moderation_keyboard(db_request_id),
-                                                    parse_mode="Markdown"
+                                                    parse_mode="HTML"
                                                 )
                                         except Exception as e:
                                             logger.error(f"Failed to send to moderator {mod.telegram_id}: {e}")

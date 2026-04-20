@@ -266,3 +266,44 @@ INFO:     ::1:51011 - "POST /api/start_analysis HTTP/1.1" 200 OK
 INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/status HTTP/1.1" 200 OK
 INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/result HTTP/1.1" 200 OK
 INFO:     ::1:51047 - "GET /api/task/res_e8cde6ee-ab91-4e1a-8e3a-61b7978bbfa0/stats HTTP/1.1" 200 OK
+INFO:     Started server process [18480]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:62209 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Запуск алгоритма agriculture_classification для задачи res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1...
+Задача res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1 готова! Результат: server_results/res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1_result.png
+INFO:     ::1:62241 - "GET /api/task/res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1/status HTTP/1.1" 200 OK
+INFO:     ::1:62241 - "GET /api/task/res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1/result HTTP/1.1" 200 OK
+INFO:     ::1:62241 - "GET /api/task/res_cdf26f1a-a4fa-402a-a1a6-1ac76e03e9c1/stats HTTP/1.1" 200 OK
+INFO:     Started server process [14068]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:52640 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [12548]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:56242 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [13616]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:54630 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [24564]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:64169 - "GET / HTTP/1.1" 404 Not Found
+INFO:     Started server process [14144]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+INFO:     ::1:64750 - "GET / HTTP/1.1" 404 Not Found
+INFO:     ::1:61911 - "POST /api/start_analysis HTTP/1.1" 200 OK
+Р—Р°РїСѓСЃРє Р°Р»РіРѕСЂРёС‚РјР° agriculture_classification РґР»СЏ Р·Р°РґР°С‡Рё res_388ad8da-10bd-48fb-83af-752cdff30ade...
+Р—Р°РґР°С‡Р° res_388ad8da-10bd-48fb-83af-752cdff30ade РіРѕС‚РѕРІР°! Р РµР·СѓР»СЊС‚Р°С‚: server_results/res_388ad8da-10bd-48fb-83af-752cdff30ade_result.png
+INFO:     ::1:61941 - "GET /api/task/res_388ad8da-10bd-48fb-83af-752cdff30ade/status HTTP/1.1" 200 OK
+INFO:     ::1:61941 - "GET /api/task/res_388ad8da-10bd-48fb-83af-752cdff30ade/result HTTP/1.1" 200 OK
+INFO:     ::1:61941 - "GET /api/task/res_388ad8da-10bd-48fb-83af-752cdff30ade/stats HTTP/1.1" 200 OK

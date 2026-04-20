@@ -126,10 +126,9 @@ async def analytics_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
         stats = await RequestRepository.get_tasks_stats(session)
         
-        msg = "📈 *Аналитика задач:*\n\n"
+        msg = "📈 <b>Аналитика задач:</b>\n\n"
         msg += f"Всего заявок: {stats['total']}\n"
         for st, count in stats['by_status'].items():
-            # escape - for markdown v2, or just use bold appropriately
-            msg += f" * {st}: {count}\n"
+            msg += f" • {st}: {count}\n"
             
-        await update.message.reply_markdown(msg)
+        await update.message.reply_html(msg)
